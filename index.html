@@ -3,237 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Kas Terintegrasi v2.0</title>
+    <title>Sistem Kas Pro - Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --green: #2ecc71; --red: #e74c3c; --dark: #2c3e50; --bg: #f4f7f6; --gray: #7f8c8d; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
-        header { background: var(--dark); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1100px; margin: 25px auto; padding: 0 15px; flex: 1; }
+        :root { --green: #27ae60; --red: #e74c3c; --dark: #2c3e50; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        header { background: var(--dark); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 22px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
         
-        /* Stats Card */
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card h4 { margin: 0; font-size: 13px; color: var(--gray); text-transform: uppercase; }
-        .card .val { font-size: 26px; font-weight: 800; margin: 10px 0; }
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .card h4 { margin: 0; color: #7f8c8d; font-size: 14px; text-transform: uppercase; }
+        .card .val { font-size: 24px; font-weight: bold; margin-top: 10px; }
 
-        /* Admin Action Bar */
-        #adminBar { display: none; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid var(--green); align-items: center; gap: 10px; flex-wrap: wrap; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        /* Log Layout */
-        .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        @media (max-width: 768px) { .log-grid { grid-template-columns: 1fr; } }
-        .log-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; background: #f8f9fa; padding: 12px; color: #666; }
-        td { padding: 12px; border-top: 1px solid #eee; }
+        /* Main Table */
+        .section-title { margin: 30px 0 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--dark); padding-left: 15px; }
+        .main-card { background: white; border-radius: 12px; padding: 10px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: left; padding: 15px; background: #fdfdfd; color: #444; font-size: 13px; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
 
-        /* Modal & Form */
+        /* Inputs */
+        .check-kas { width: 20px; height: 20px; cursor: pointer; accent-color: var(--green); }
+        .btn { border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-del { background: none; color: var(--red); border: 1px solid var(--red); padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .btn-del:hover { background: var(--red); color: white; }
+
+        /* Riwayat Grid */
+        .grid-logs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        @media (max-width: 768px) { .grid-logs { grid-template-columns: 1fr; } }
+
+        /* Sync Notification */
+        #syncNotif { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px); }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
-        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        .btn-green { background: var(--green); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-red { background: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-green:hover { background: #27ae60; }
-
-        /* Footer Copyright */
-        footer { background: var(--dark); color: #bdc3c7; padding: 20px 0; text-align: center; font-size: 14px; margin-top: 40px; }
-        .copyright { display: flex; flex-direction: column; gap: 5px; }
-        .copyright b { color: white; letter-spacing: 1px; }
-        .copyright span { color: var(--green); }
-
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="font-size: 20px; font-weight: bold;"><i class="fas fa-chart-pie"></i> KAS PORTER</div>
-    <button class="btn-green" onclick="login()"><i class="fas fa-user-shield"></i> LOGIN ADMIN</button>
-</header>
+<header><i class="fas fa-database"></i> KAS PORTER BANJAR</header>
 
 <div class="container">
     <div class="stats">
-        <div class="card"><h4>Pemasukan (Kas + Denda)</h4><div id="totalIn" class="val" style="color:var(--green)">Rp 0</div></div>
-        <div class="card"><h4>Pengeluaran Umum</h4><div id="totalOut" class="val" style="color:var(--red)">Rp 0</div></div>
-        <div class="card"><h4>Saldo Bersih</h4><div id="totalNet" class="val" style="color:var(--dark)">Rp 0</div></div>
+        <div class="card"><h4>Saldo Bersih</h4><div id="netSum" class="val" style="color:var(--dark)">Rp 0</div></div>
+        <div class="card"><h4>Pemasukan</h4><div id="inSum" class="val" style="color:var(--green)">Rp 0</div></div>
+        <div class="card"><h4>Pengeluaran</h4><div id="outSum" class="val" style="color:var(--red)">Rp 0</div></div>
     </div>
 
-    <div id="adminBar">
-        <strong style="color:var(--green)"><i class="fas fa-tools"></i> Admin Panel:</strong>
-        <button class="btn-green" onclick="openLogModal('Denda')"><i class="fas fa-plus"></i> Catat Denda</button>
-        <button class="btn-red" onclick="openLogModal('Keluar')"><i class="fas fa-minus"></i> Catat Pengeluaran</button>
-        <button style="background:#eee; border:none; padding:10px; border-radius:8px; cursor:pointer;" onclick="location.reload()">Logout</button>
-    </div>
-
-    <div class="log-grid">
-        <div class="log-card">
-            <h3 style="color:var(--green); margin-top:0"><i class="fas fa-history"></i> 5 Denda Terbaru</h3>
-            <table id="tblDenda"><thead><tr><th>No</th><th>Ket</th><th>Tgl</th><th>Harga</th></tr></thead><tbody></tbody></table>
-        </div>
-        <div class="log-card">
-            <h3 style="color:var(--red); margin-top:0"><i class="fas fa-history"></i> 5 Pengeluaran Terbaru</h3>
-            <table id="tblKeluar"><thead><tr><th>No</th><th>Ket</th><th>Tgl</th><th>Harga</th></tr></thead><tbody></tbody></table>
+    <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+        <button class="btn" style="background:var(--green)" onclick="openModal('Denda')"><i class="fas fa-plus-circle"></i> Catat Denda Umum</button>
+        <button class="btn" style="background:var(--red)" onclick="openModal('Keluar')"><i class="fas fa-minus-circle"></i> Catat Pengeluaran</button>
+        <div style="flex:1"></div>
+        <div style="background:white; padding:5px 15px; border-radius:8px; border:1px solid #ddd;">
+            <small>Set Nominal:</small> <input type="number" id="baseNom" value="5000" style="width:80px; margin:0; border:none; font-weight:bold;">
         </div>
     </div>
 
-    <div class="log-card">
-        <h3><i class="fas fa-users"></i> Absensi Kas Anggota</h3>
+    <div class="section-title"><h3><i class="fas fa-user-check"></i> Absensi Kas Anggota</h3></div>
+    <div class="main-card">
         <table id="tblKas">
-            <thead><tr><th>Nama Anggota</th><th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>Total</th><th class="adm" style="display:none">Edit</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>NAMA ANGGOTA</th>
+                    <th>M1</th><th>M2</th><th>M3</th><th>M4</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
             <tbody></tbody>
         </table>
     </div>
-</div>
 
-<div class="modal" id="modalKas">
-    <div class="modal-content">
-        <h3 id="kasTitle">Edit Kas Anggota</h3>
-        <label>Nominal Pembayaran (Rp)</label>
-        <input type="number" id="basePrice" value="5000">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
-            <label><input type="checkbox" id="m1"> Minggu 1</label>
-            <label><input type="checkbox" id="m2"> Minggu 2</label>
-            <label><input type="checkbox" id="m3"> Minggu 3</label>
-            <label><input type="checkbox" id="m4"> Minggu 4</label>
+    <div class="grid-logs">
+        <div class="main-card">
+            <h4 style="color:var(--green); padding:10px;"><i class="fas fa-history"></i> Riwayat Denda</h4>
+            <table id="riwayatDenda">
+                <thead><tr><th>Ket</th><th>Harga</th><th>Hapus</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
-        <button class="btn-green" style="width:100%" onclick="saveKas()">SIMPAN PERUBAHAN</button>
-        <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#888;">Batal</button>
+        <div class="main-card">
+            <h4 style="color:var(--red); padding:10px;"><i class="fas fa-history"></i> Riwayat Pengeluaran</h4>
+            <table id="riwayatKeluar">
+                <thead><tr><th>Ket</th><th>Harga</th><th>Hapus</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <div class="modal" id="modalLog">
     <div class="modal-content">
-        <h3 id="logTitle">Tambah Catatan</h3>
-        <input type="hidden" id="logType">
-        <input type="text" id="logKet" placeholder="Keterangan (Contoh: Beli Sapu)">
+        <h3 id="logTitle">Input Data</h3>
+        <input type="text" id="logKet" placeholder="Contoh: Telat / Beli Peralatan">
         <input type="date" id="logTgl">
-        <input type="number" id="logHarga" placeholder="Nominal Rp">
-        <button class="btn-green" id="logSubmitBtn" style="width:100%" onclick="saveLog()">TAMBAH DATA</button>
-        <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:#888;">Batal</button>
+        <input type="number" id="logHarga" placeholder="Nominal (Tanpa Titik)">
+        <button class="btn" style="background:var(--green); width:100%" onclick="saveLog()">SIMPAN DATA</button>
+        <button onclick="closeM()" style="width:100%; background:none; border:none; margin-top:15px; color:#888; cursor:pointer;">Batal</button>
     </div>
 </div>
 
-<footer>
-    <div class="container">
-        <div class="copyright">
-            <b>&copy; 2026 SISTEM KAS PORTER</b>
-            <div>Developed with <i class="fas fa-heart" style="color:var(--red)"></i> by <span>Hilman Boa</span></div>
-            <div style="font-size: 11px; margin-top: 5px; opacity: 0.6;">Versi 2.0 | Semua Hak Dilindungi</div>
-        </div>
-    </div>
-</footer>
+<div id="syncNotif"><i class="fas fa-cloud-upload-alt"></i> Menyimpan...</div>
 
 <script>
-    const APP_URL = "https://script.google.com/macros/s/AKfycbyip828n-MsiUtkGplSg6mDV7Qxi_xM5z2rwWfUM9SvLA6l5weV3iXL56Hm47fK57Mr/exec"; 
-    let db = {}; let isAdmin = false; let currentIdx = null;
+    const API = "https://script.google.com/macros/s/AKfycbyip828n-MsiUtkGplSg6mDV7Qxi_xM5z2rwWfUM9SvLA6l5weV3iXL56Hm47fK57Mr/exec";
+    let db = { kas: [], logs: [] };
+    let activeType = "";
 
     async function load() {
-        const r = await fetch(APP_URL);
-        db = await r.json();
-        render();
+        try {
+            const r = await fetch(API);
+            db = await r.json();
+            render();
+        } catch (e) { alert("Gagal memuat data!"); }
     }
 
     function render() {
-        const dBody = document.querySelector("#tblDenda tbody");
-        const kBody = document.querySelector("#tblKeluar tbody");
-        dBody.innerHTML = ""; kBody.innerHTML = "";
-        
-        let inTotal = 0, outTotal = 0, kasTotal = 0;
+        // Render Kas Anggota
+        const bodyKas = document.querySelector("#tblKas tbody");
+        bodyKas.innerHTML = "";
+        let sumKas = 0, sumDenda = 0, sumKeluar = 0;
 
-        db.logs.forEach(x => {
-            if(x.Tipe === 'Denda') inTotal += Number(x.Harga);
-            if(x.Tipe === 'Keluar') outTotal += Number(x.Harga);
-        });
-
-        db.logs.filter(x => x.Tipe === 'Denda').slice(-5).reverse().forEach(x => {
-            dBody.innerHTML += `<tr><td>${x.No}</td><td>${x.Keterangan}</td><td>${x.Tanggal.split('T')[0]}</td><td>${fmt(x.Harga)}</td></tr>`;
-        });
-        db.logs.filter(x => x.Tipe === 'Keluar').slice(-5).reverse().forEach(x => {
-            kBody.innerHTML += `<tr><td>${x.No}</td><td>${x.Keterangan}</td><td>${x.Tanggal.split('T')[0]}</td><td>${fmt(x.Harga)}</td></tr>`;
-        });
-
-        const kasBody = document.querySelector("#tblKas tbody");
-        kasBody.innerHTML = "";
         db.kas.forEach((x, i) => {
-            kasTotal += Number(x.Total);
-            kasBody.innerHTML += `<tr>
+            sumKas += Number(x.Total);
+            bodyKas.innerHTML += `<tr>
                 <td style="font-weight:bold">${x.Nama}</td>
-                <td>${x['Minggu 1']>0?'✅':'-'}</td><td>${x['Minggu 2']>0?'✅':'-'}</td>
-                <td>${x['Minggu 3']>0?'✅':'-'}</td><td>${x['Minggu 4']>0?'✅':'-'}</td>
-                <td style="color:var(--green); font-weight:bold">${fmt(x.Total)}</td>
-                <td class="adm" style="display:${isAdmin?'table-cell':'none'}">
-                    <button onclick="openKasModal(${i})" style="border:none; background:none; color:#f39c12; cursor:pointer;"><i class="fas fa-edit"></i></button>
-                </td>
+                <td><input type="checkbox" class="check-kas" ${x['Minggu 1']>0?'checked':''} onchange="updateKas(${i}, 1, this)"></td>
+                <td><input type="checkbox" class="check-kas" ${x['Minggu 2']>0?'checked':''} onchange="updateKas(${i}, 2, this)"></td>
+                <td><input type="checkbox" class="check-kas" ${x['Minggu 3']>0?'checked':''} onchange="updateKas(${i}, 3, this)"></td>
+                <td><input type="checkbox" class="check-kas" ${x['Minggu 4']>0?'checked':''} onchange="updateKas(${i}, 4, this)"></td>
+                <td id="total-${i}" style="font-weight:bold; color:var(--green)">${fmt(x.Total)}</td>
             </tr>`;
         });
 
-        document.getElementById('totalIn').innerText = "Rp " + fmt(kasTotal + inTotal);
-        document.getElementById('totalOut').innerText = "Rp " + fmt(outTotal);
-        document.getElementById('totalNet').innerText = "Rp " + fmt((kasTotal + inTotal) - outTotal);
+        // Render Riwayat Logs
+        const bodyDenda = document.querySelector("#riwayatDenda tbody");
+        const bodyKeluar = document.querySelector("#riwayatKeluar tbody");
+        bodyDenda.innerHTML = ""; bodyKeluar.innerHTML = "";
+
+        db.logs.forEach(x => {
+            const row = `<tr>
+                <td><small>${x.Tanggal.split('T')[0]}</small><br>${x.Keterangan}</td>
+                <td>${fmt(x.Harga)}</td>
+                <td><button class="btn-del" onclick="deleteLog('${x.rowIndex}', '${x.No}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+            
+            if(x.Tipe === 'Denda') {
+                sumDenda += Number(x.Harga);
+                bodyDenda.innerHTML += row;
+            } else {
+                sumKeluar += Number(x.Harga);
+                bodyKeluar.innerHTML += row;
+            }
+        });
+
+        // Update Stats
+        document.getElementById('inSum').innerText = "Rp " + fmt(sumKas + sumDenda);
+        document.getElementById('outSum').innerText = "Rp " + fmt(sumKeluar);
+        document.getElementById('netSum').innerText = "Rp " + fmt((sumKas + sumDenda) - sumKeluar);
     }
 
-    function login() {
-        if(prompt("Password Admin:") === "anbu123") {
-            isAdmin = true;
-            document.getElementById('adminBar').style.display = 'flex';
-            document.querySelectorAll('.adm').forEach(e => e.style.display = 'table-cell');
-            render();
-        }
-    }
+    // UPDATE KAS LANGSUNG (RESPONSIF)
+    async function updateKas(idx, m, el) {
+        const nom = Number(document.getElementById('baseNom').value);
+        const item = db.kas[idx];
+        item["Minggu " + m] = el.checked ? nom : 0;
+        item.Total = Number(item['Minggu 1']) + Number(item['Minggu 2']) + Number(item['Minggu 3']) + Number(item['Minggu 4']);
+        
+        document.getElementById(`total-${idx}`).innerText = fmt(item.Total);
+        updateDashboard(); // Update angka saldo instan
 
-    function openKasModal(i) {
-        currentIdx = i; const d = db.kas[i];
-        document.getElementById('kasTitle').innerText = d.Nama;
-        document.getElementById('m1').checked = d['Minggu 1'] > 0;
-        document.getElementById('m2').checked = d['Minggu 2'] > 0;
-        document.getElementById('m3').checked = d['Minggu 3'] > 0;
-        document.getElementById('m4').checked = d['Minggu 4'] > 0;
-        document.getElementById('modalKas').style.display = 'flex';
-    }
-
-    function openLogModal(type) {
-        document.getElementById('logType').value = type;
-        document.getElementById('logTitle').innerText = "Input " + type;
-        document.getElementById('modalLog').style.display = 'flex';
-    }
-
-    async function saveKas() {
-        const p = document.getElementById('basePrice').value;
-        const data = {
-            action: 'editKas',
-            rowIndex: db.kas[currentIdx].rowIndex,
-            nama: db.kas[currentIdx].Nama,
-            m1: document.getElementById('m1').checked ? p : 0,
-            m2: document.getElementById('m2').checked ? p : 0,
-            m3: document.getElementById('m3').checked ? p : 0,
-            m4: document.getElementById('m4').checked ? p : 0
+        toggleSync(true);
+        const payload = {
+            action: 'quickUpdate',
+            rowIndex: item.rowIndex,
+            nama: item.Nama,
+            m1: item['Minggu 1'], m2: item['Minggu 2'], m3: item['Minggu 3'], m4: item['Minggu 4']
         };
-        await postData(data);
+        await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+        toggleSync(false);
     }
 
     async function saveLog() {
-        const data = {
+        const payload = {
             action: 'addLog',
-            tipe: document.getElementById('logType').value,
+            tipe: activeType,
             keterangan: document.getElementById('logKet').value,
             tanggal: document.getElementById('logTgl').value,
             harga: document.getElementById('logHarga').value
         };
-        await postData(data);
+        toggleSync(true); closeM();
+        await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+        load(); // Reload full data
+        toggleSync(false);
     }
 
-    async function postData(d) {
-        document.body.style.opacity = "0.5";
-        await fetch(APP_URL, { method: 'POST', body: JSON.stringify(d) });
-        location.reload();
+    async function deleteLog(row, id) {
+        if(!confirm("Hapus catatan ini?")) return;
+        toggleSync(true);
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'deleteLog', id: id }) });
+        load();
+        toggleSync(false);
     }
 
-    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
+    function updateDashboard() {
+        let sumK = 0, sumD = 0, sumL = 0;
+        db.kas.forEach(x => sumK += Number(x.Total));
+        db.logs.forEach(x => { if(x.Tipe === 'Denda') sumD += Number(x.Harga); else sumL += Number(x.Harga); });
+        document.getElementById('inSum').innerText = "Rp " + fmt(sumK + sumD);
+        document.getElementById('netSum').innerText = "Rp " + fmt((sumK + sumD) - sumL);
+    }
+
+    function openModal(t) { activeType = t; document.getElementById('logTitle').innerText = "Input " + t; document.getElementById('modalLog').style.display = 'flex'; }
+    function closeM() { document.getElementById('modalLog').style.display = 'none'; }
+    function toggleSync(s) { document.getElementById('syncNotif').style.display = s ? 'block' : 'none'; }
     function fmt(n) { return Number(n).toLocaleString('id-ID'); }
+    
     load();
 </script>
 </body>
-
 </html>
